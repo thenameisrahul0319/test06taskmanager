@@ -55,9 +55,14 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('combined'));
 }
 
-// Static files
-app.use(express.static('public'));
-app.use('/uploads', express.static('uploads'));
+// Static files with caching
+app.use(express.static('public', {
+  maxAge: '1d', // Cache static files for 1 day
+  etag: true
+}));
+app.use('/uploads', express.static('uploads', {
+  maxAge: '1h'
+}));
 
 // Database connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/task_manager', {

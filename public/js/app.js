@@ -6,9 +6,18 @@ class TaskManagerApp {
         this.init();
     }
 
+    hideLoadingScreen() {
+        const loadingScreen = document.getElementById('loadingScreen');
+        const app = document.getElementById('app');
+        if (loadingScreen) {
+            loadingScreen.style.display = 'none';
+        }
+        if (app) {
+            app.style.display = 'block';
+        }
+    }
+
     async init() {
-        this.showLoadingScreen();
-        
         if (this.token) {
             try {
                 await this.validateToken();
