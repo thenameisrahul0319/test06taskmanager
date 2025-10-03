@@ -390,6 +390,9 @@ class TaskManagerApp {
             const canEdit = this.user.role === 'superadmin' || 
                            task.createdBy._id === this.user.id || 
                            task.assignedTo._id === this.user.id;
+            
+            const canDelete = this.user.role === 'superadmin' || 
+                             task.createdBy._id === this.user.id;
 
             card.innerHTML = `
                 <div class="task-header">
@@ -406,7 +409,7 @@ class TaskManagerApp {
                             <button onclick="app.editTask('${task._id}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            ${this.user.role === 'superadmin' || task.createdBy._id === this.user.id ? `
+                            ${canDelete ? `
                                 <button onclick="app.deleteTask('${task._id}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; background: #fed7d7; color: #c53030;">
                                     <i class="fas fa-trash"></i>
                                 </button>
