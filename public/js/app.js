@@ -70,13 +70,16 @@ class TaskManagerApp {
     }
 
     async validateToken() {
-        const response = await fetch('/api/users', {
+        const response = await fetch('/api/auth/me', {
             headers: { 'Authorization': `Bearer ${this.token}` }
         });
         
         if (!response.ok) {
             throw new Error('Invalid token');
         }
+        
+        const data = await response.json();
+        this.user = data.user;
     }
 
     showLogin() {

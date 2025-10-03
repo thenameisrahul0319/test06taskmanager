@@ -99,6 +99,37 @@ router.post('/register', [
   });
 }));
 
+// Get current user info
+router.get('/me', asyncHandler(async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+  
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId).select('-password');
+    
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+    
+    res.json({
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        assignedLeader: user.assignedLeader
+      }
+    });
+  } catch (error) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+}));
+
 // Logout
 router.post('/logout', asyncHandler(async (req, res) => {
   // In a production app, you might want to blacklist the token
