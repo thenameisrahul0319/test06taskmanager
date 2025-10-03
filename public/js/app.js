@@ -387,10 +387,6 @@ class TaskManagerApp {
             card.className = `task-card priority-${task.priority}`;
             
             const dueDate = task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date';
-            // Debug logging
-            console.log('User:', this.user);
-            console.log('Task:', task);
-            
             // Superadmin has full access, others check specific permissions
             const canEdit = this.user.role === 'superadmin' || 
                            task.createdBy._id === this.user.id || 
@@ -398,8 +394,6 @@ class TaskManagerApp {
             
             const canDelete = this.user.role === 'superadmin' || 
                              task.createdBy._id === this.user.id;
-            
-            console.log('canEdit:', canEdit, 'canDelete:', canDelete);
 
             card.innerHTML = `
                 <div class="task-header">
@@ -413,11 +407,11 @@ class TaskManagerApp {
                     </div>
                     ${canEdit ? `
                         <div style="display: flex; gap: 10px;">
-                            <button onclick="app.editTask('${task._id}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">
+                            <button data-action="edit" data-task-id="${task._id}" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">
                                 <i class="fas fa-edit"></i>
                             </button>
                             ${canDelete ? `
-                                <button onclick="app.deleteTask('${task._id}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; background: #fed7d7; color: #c53030;">
+                                <button data-action="delete" data-task-id="${task._id}" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; background: #fed7d7; color: #c53030;">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             ` : ''}
@@ -431,7 +425,7 @@ class TaskManagerApp {
                     </div>
                     <div>
                         ${task.assignedTo._id === this.user.id ? `
-                            <select class="status-selector" onchange="app.updateTaskStatus('${task._id}', this.value)">
+                            <select class="status-selector" data-task-id="${task._id}">
                                 <option value="pending" ${task.status === 'pending' ? 'selected' : ''}>Pending</option>
                                 <option value="in-progress" ${task.status === 'in-progress' ? 'selected' : ''}>In Progress</option>
                                 <option value="completed" ${task.status === 'completed' ? 'selected' : ''}>Completed</option>
@@ -442,6 +436,21 @@ class TaskManagerApp {
                     </div>
                 </div>
             `;
+            
+            // Add event listeners
+            const editBtn = card.querySelector('[data-action="edit"]');
+            const deleteBtn = card.querySelector('[data-action="delete"]');
+            const statusSelect = card.querySelector('.status-selector');
+            
+            if (editBtn) {
+                editBtn.addEventListener('click', () => this.editTask(task._id));
+            }
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', () => this.deleteTask(task._id));
+            }
+            if (statusSelect) {
+                statusSelect.addEventListener('change', (e) => this.updateTaskStatus(task._id, e.target.value));
+            }
             container.appendChild(card);
         });
     }
@@ -490,15 +499,27 @@ class TaskManagerApp {
                 </div>
                 ${canEdit ? `
                     <div style="margin-top: 15px; display: flex; gap: 10px;">
-                        <button onclick="app.editUser('${user._id}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">
+                        <button data-action="edit-user" data-user-id="${user._id}" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button onclick="app.deleteUser('${user._id}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; background: #fed7d7; color: #c53030;">
+                        <button data-action="delete-user" data-user-id="${user._id}" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; background: #fed7d7; color: #c53030;">
                             <i class="fas fa-trash"></i> Delete
                         </button>
                     </div>
                 ` : ''}
             `;
+            
+            // Add event listeners for user actions
+            const editUserBtn = card.querySelector('[data-action="edit-user"]');
+            const deleteUserBtn = card.querySelector('[data-action="delete-user"]');
+            
+            if (editUserBtn) {
+                editUserBtn.addEventListener('click', () => this.editUser(user._id));
+            }
+            if (deleteUserBtn) {
+                deleteUserBtn.addEventListener('click', () => this.deleteUser(user._id));
+            }
+            
             container.appendChild(card);
         });
     }
