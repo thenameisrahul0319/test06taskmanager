@@ -887,10 +887,31 @@ class TaskManagerApp {
 
         const div = document.createElement('div');
         div.className = type === 'error' ? 'error-message' : 'success-message';
+        div.style.cssText = `
+            background: ${type === 'error' ? '#fed7d7' : '#c6f6d5'};
+            color: ${type === 'error' ? '#c53030' : '#2f855a'};
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            border: 1px solid ${type === 'error' ? '#feb2b2' : '#9ae6b4'};
+        `;
         div.textContent = message;
         
-        const container = document.querySelector('.main-content') || document.querySelector('.login-card');
-        container.insertBefore(div, container.firstChild);
+        // Try multiple container options
+        const container = document.querySelector('.main-content') || 
+                         document.querySelector('.login-card') ||
+                         document.querySelector('.login-form') ||
+                         document.getElementById('loginContainer');
+        
+        if (container) {
+            container.insertBefore(div, container.firstChild);
+        } else {
+            // Fallback: append to body
+            document.body.appendChild(div);
+        }
 
         setTimeout(() => div.remove(), 5000);
     }
