@@ -369,8 +369,15 @@ class TaskManagerApp {
                 headers: { 'Authorization': `Bearer ${this.token}` }
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
             const data = await response.json();
-            this.renderTasks(data.tasks);
+            
+            // Handle case where tasks might be undefined
+            const tasks = data.tasks || [];
+            this.renderTasks(tasks);
         } catch (error) {
             this.showError('Failed to load tasks');
         }
@@ -392,11 +399,11 @@ class TaskManagerApp {
             const dueDate = task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date';
             // Superadmin has full access, others check specific permissions
             const canEdit = this.user.role === 'superadmin' || 
-                           task.createdBy._id === this.user.id || 
-                           task.assignedTo._id === this.user.id;
+                           task.createdBy._id === this.user._id || 
+                           task.assignedTo._id === this.user._id;
             
             const canDelete = this.user.role === 'superadmin' || 
-                             task.createdBy._id === this.user.id;
+                             task.createdBy._id === this.user._id;
 
             card.innerHTML = `
                 <div class="task-header">
@@ -427,7 +434,7 @@ class TaskManagerApp {
                         <small style="color: #718096;">Created by ${task.createdBy.fullName}</small>
                     </div>
                     <div>
-                        ${task.assignedTo._id === this.user.id ? `
+                        ${task.assignedTo._id === this.user._id ? `
                             <select class="status-selector" data-task-id="${task._id}">
                                 <option value="pending" ${task.status === 'pending' ? 'selected' : ''}>Pending</option>
                                 <option value="in-progress" ${task.status === 'in-progress' ? 'selected' : ''}>In Progress</option>
@@ -485,7 +492,7 @@ class TaskManagerApp {
             card.className = `user-card role-${user.role}`;
             
             const canEdit = this.user.role === 'superadmin' || 
-                           (this.user.role === 'leader' && user.assignedLeader === this.user.id);
+                           (this.user.role === 'leader' && user.assignedLeader === this.user._id);
 
             card.innerHTML = `
                 <div class="user-header">
