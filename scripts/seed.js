@@ -5,7 +5,10 @@ require('dotenv').config();
 
 const seedData = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/task_manager');
+    // Only connect if not already connected
+    if (mongoose.connection.readyState !== 1) {
+      await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/task_manager');
+    }
     
     // Clear existing data
     await User.deleteMany({});
@@ -100,11 +103,16 @@ const seedData = async () => {
     console.log('Member: alice_member / Password123!');
     console.log('Member: bob_member / Password123!');
     
-    process.exit(0);
+    return true;
   } catch (error) {
     console.error('Seeding failed:', error);
-    process.exit(1);
+    return false;
   }
 };
 
-seedData();
+// Run seeding if called directly
+if (require.main === module) {
+  seedData().then(() => process.exit(0)).catch(() => process.exit(1));
+}
+
+module.exports = seedData;

@@ -61,8 +61,31 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/task_mana
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log('Connected to MongoDB'))
+.then(async () => {
+  console.log('Connected to MongoDB');
+  // Auto-seed database if no admin user exists
+  await autoSeedDatabase();
+})
 .catch(err => console.error('MongoDB connection error:', err));
+
+// Auto-seed function
+async function autoSeedDatabase() {
+  try {
+    const User = require('./models/User');
+    const adminExists = await User.findOne({ role: 'superadmin' });
+    
+    if (!adminExists) {
+      console.log('No admin user found. Seeding database...');
+      const seedData = require('./scripts/seed');
+      await seedData();
+      console.log('Database auto-seeded successfully!');
+    } else {
+      console.log('Admin user exists. Skipping auto-seed.');
+    }
+  } catch (error) {
+    console.log('Auto-seed check failed:', error.message);
+  }
+}
 
 // Socket.IO for real-time updates
 io.use((socket, next) => {
@@ -110,6 +133,17 @@ app.use('/api/activity', authenticateToken, activityRoutes);
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Manual seed endpoint (remove after first use)
+app.get('/api/seed-admin', async (req, res) => {
+  try {
+    const seedData = require('./scripts/seed');
+    await seedData();
+    res.json({ message: 'Database seeded successfully!' });
+  } catch (error) {
+    res.status(500).json({ error: 'Seeding failed: ' + error.message });
+  }
 });
 
 // Serve frontend
