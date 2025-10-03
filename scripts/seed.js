@@ -20,13 +20,10 @@ const seedData = async () => {
       email: 'admin@taskmanager.com',
       password: 'Admin123!',
       fullName: 'System Administrator',
-      role: 'superadmin',
-      createdBy: null
+      role: 'superadmin'
+      // createdBy is not required for superadmin
     });
     
-    // Set createdBy to self for superadmin
-    await superadmin.save();
-    superadmin.createdBy = superadmin._id;
     await superadmin.save();
     
     // Create sample leader
