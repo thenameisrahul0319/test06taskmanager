@@ -6,32 +6,18 @@ class TaskManagerApp {
         this.init();
     }
 
-    hideLoadingScreen() {
-        const loadingScreen = document.getElementById('loadingScreen');
-        const app = document.getElementById('app');
-        if (loadingScreen) {
-            loadingScreen.style.display = 'none';
-        }
-        if (app) {
-            app.style.display = 'block';
-        }
-    }
-
     async init() {
         if (this.token) {
             try {
                 await this.validateToken();
-                this.hideLoadingScreen();
                 this.showMainApp();
                 this.initSocket();
                 this.bindEvents();
                 await this.loadDashboard();
             } catch (error) {
-                this.hideLoadingScreen();
                 this.showLogin();
             }
         } else {
-            this.hideLoadingScreen();
             this.showLogin();
         }
     }
