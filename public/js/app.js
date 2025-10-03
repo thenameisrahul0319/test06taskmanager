@@ -7,18 +7,70 @@ class TaskManagerApp {
     }
 
     async init() {
+        this.showLoadingScreen();
+        
         if (this.token) {
             try {
                 await this.validateToken();
+                this.hideLoadingScreen();
                 this.showMainApp();
                 this.initSocket();
                 this.bindEvents();
                 await this.loadDashboard();
             } catch (error) {
+                this.hideLoadingScreen();
                 this.showLogin();
             }
         } else {
+            this.hideLoadingScreen();
             this.showLogin();
+        }
+    }
+
+    showLoadingScreen() {
+        const loadingHTML = `
+            <div id="loadingScreen" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+                color: white;
+            ">
+                <div style="text-align: center;">
+                    <div style="
+                        width: 50px;
+                        height: 50px;
+                        border: 3px solid rgba(255,255,255,0.3);
+                        border-top: 3px solid white;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                        margin: 0 auto 20px;
+                    "></div>
+                    <h2 style="margin: 0 0 10px 0;">Leaders Task Manager</h2>
+                    <p style="margin: 0; opacity: 0.8;">Starting up server...</p>
+                </div>
+                <style>
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                </style>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', loadingHTML);
+    }
+
+    hideLoadingScreen() {
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen) {
+            loadingScreen.remove();
         }
     }
 
