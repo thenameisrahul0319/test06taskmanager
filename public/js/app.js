@@ -152,6 +152,10 @@ class TaskManagerApp {
     }
 
     bindEvents() {
+        // Prevent duplicate event listeners
+        if (this.eventsbound) return;
+        this.eventsbound = true;
+
         // Tab navigation
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -172,19 +176,23 @@ class TaskManagerApp {
             });
         });
 
-        // Task form
+        // Task form - remove existing listeners first
         const taskForm = document.getElementById('taskForm');
         if (taskForm) {
-            taskForm.addEventListener('submit', async (e) => {
+            const newTaskForm = taskForm.cloneNode(true);
+            taskForm.parentNode.replaceChild(newTaskForm, taskForm);
+            newTaskForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 await this.handleTaskSubmit();
             });
         }
 
-        // User form
+        // User form - remove existing listeners first
         const userForm = document.getElementById('userForm');
         if (userForm) {
-            userForm.addEventListener('submit', async (e) => {
+            const newUserForm = userForm.cloneNode(true);
+            userForm.parentNode.replaceChild(newUserForm, userForm);
+            newUserForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 await this.handleUserSubmit();
             });
@@ -628,8 +636,16 @@ class TaskManagerApp {
     }
 
     async handleTaskSubmit() {
+        // Prevent multiple submissions
+        if (this.submitting) return;
+        this.submitting = true;
+
         const form = document.getElementById('taskForm');
-        const formData = new FormData(form);
+        const submitBtn = form.querySelector('button[type="submit"]');
+        
+        // Disable submit button
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
         
         const taskData = {
             title: document.getElementById('taskTitle').value,
@@ -663,6 +679,11 @@ class TaskManagerApp {
             }
         } catch (error) {
             this.showError('Network error. Please try again.');
+        } finally {
+            // Re-enable submit button
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Save Task';
+            this.submitting = false;
         }
     }
 
@@ -814,6 +835,7 @@ class TaskManagerApp {
         localStorage.removeItem('token');
         this.token = null;
         this.user = null;
+        this.eventsbound = false; // Reset events flag
         if (this.socket) {
             this.socket.disconnect();
         }
