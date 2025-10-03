@@ -387,12 +387,13 @@ class TaskManagerApp {
             card.className = `task-card priority-${task.priority}`;
             
             const dueDate = task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date';
+            const userId = this.user.id || this.user._id;
             const canEdit = this.user.role === 'superadmin' || 
-                           task.createdBy._id === this.user.id || 
-                           task.assignedTo._id === this.user.id;
+                           task.createdBy._id === userId || 
+                           task.assignedTo._id === userId;
             
             const canDelete = this.user.role === 'superadmin' || 
-                             task.createdBy._id === this.user.id;
+                             task.createdBy._id === userId;
 
             card.innerHTML = `
                 <div class="task-header">
@@ -423,7 +424,7 @@ class TaskManagerApp {
                         <small style="color: #718096;">Created by ${task.createdBy.fullName}</small>
                     </div>
                     <div>
-                        ${task.assignedTo._id === this.user.id ? `
+                        ${task.assignedTo._id === userId ? `
                             <select class="status-selector" onchange="app.updateTaskStatus('${task._id}', this.value)">
                                 <option value="pending" ${task.status === 'pending' ? 'selected' : ''}>Pending</option>
                                 <option value="in-progress" ${task.status === 'in-progress' ? 'selected' : ''}>In Progress</option>
@@ -465,8 +466,9 @@ class TaskManagerApp {
             const card = document.createElement('div');
             card.className = `user-card role-${user.role}`;
             
+            const userId = this.user.id || this.user._id;
             const canEdit = this.user.role === 'superadmin' || 
-                           (this.user.role === 'leader' && user.assignedLeader === this.user.id);
+                           (this.user.role === 'leader' && user.assignedLeader === userId);
 
             card.innerHTML = `
                 <div class="user-header">
