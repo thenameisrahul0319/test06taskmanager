@@ -271,13 +271,21 @@ class TaskManagerApp {
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.remove('active');
         });
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        
+        const activeTabBtn = document.querySelector(`[data-tab="${tabName}"]`);
+        if (activeTabBtn) {
+            activeTabBtn.classList.add('active');
+        }
 
         // Update tab content
         document.querySelectorAll('.tab-content').forEach(content => {
             content.classList.remove('active');
         });
-        document.getElementById(tabName).classList.add('active');
+        
+        const activeTabContent = document.getElementById(tabName);
+        if (activeTabContent) {
+            activeTabContent.classList.add('active');
+        }
 
         // Load content based on tab
         switch (tabName) {
