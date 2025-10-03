@@ -365,29 +365,14 @@ class TaskManagerApp {
             if (status) url += `status=${status}&`;
             if (priority) url += `priority=${priority}&`;
 
-            console.log('Loading tasks from:', url);
-            console.log('Token exists:', !!this.token);
-            console.log('User role:', this.user?.role);
-
             const response = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${this.token}` }
             });
 
-            console.log('Response status:', response.status);
-            console.log('Response ok:', response.ok);
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Task loading error:', errorText);
-                throw new Error(`HTTP ${response.status}: ${errorText}`);
-            }
-
             const data = await response.json();
-            console.log('Tasks loaded:', data.tasks?.length || 0);
             this.renderTasks(data.tasks);
         } catch (error) {
-            console.error('Load tasks error:', error);
-            this.showError(`Failed to load tasks: ${error.message}`);
+            this.showError('Failed to load tasks');
         }
     }
 
