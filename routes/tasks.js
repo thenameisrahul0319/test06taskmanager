@@ -6,10 +6,18 @@ const Activity = require('../models/Activity');
 const { requireRole } = require('../middleware/auth');
 const { asyncHandler } = require('../middleware/errorHandler');
 
+// Add error logging middleware
+router.use((err, req, res, next) => {
+  console.error('Tasks route error:', err);
+  next(err);
+});
+
 const router = express.Router();
 
 // Get tasks
 router.get('/', asyncHandler(async (req, res) => {
+  console.log('GET /api/tasks - User:', req.user?.username, 'Role:', req.user?.role);
+  
   const { status, priority, assignedTo, page = 1, limit = 10 } = req.query;
   
   let query = {};
@@ -17,6 +25,7 @@ router.get('/', asyncHandler(async (req, res) => {
   // Role-based filtering
   if (req.user.role === 'member') {
     query.assignedTo = req.user._id;
+    console.log('Member query:', query);
   } else if (req.user.role === 'leader') {
     const teamMembers = await User.find({ assignedLeader: req.user._id }).select('_id');
     const memberIds = teamMembers.map(m => m._id);
@@ -24,12 +33,17 @@ router.get('/', asyncHandler(async (req, res) => {
       { createdBy: req.user._id },
       { assignedTo: { $in: memberIds } }
     ];
+    console.log('Leader query:', query, 'Team members:', memberIds.length);
+  } else {
+    console.log('Superadmin - no query restrictions');
   }
   
   // Apply filters
   if (status) query.status = status;
   if (priority) query.priority = priority;
   if (assignedTo) query.assignedTo = assignedTo;
+  
+  console.log('Final query:', JSON.stringify(query));
   
   const tasks = await Task.find(query)
     .populate('assignedTo', 'fullName username')
@@ -39,6 +53,8 @@ router.get('/', asyncHandler(async (req, res) => {
     .skip((page - 1) * limit);
     
   const total = await Task.countDocuments(query);
+  
+  console.log('Tasks found:', tasks.length, 'Total:', total);
   
   res.json({
     tasks,
