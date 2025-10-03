@@ -124,7 +124,10 @@ class TaskManagerApp {
                 await this.loadDashboard();
                 this.showSuccess('Login successful!');
             } else {
+                console.log('Login failed, showing error message');
                 this.showError('Wrong username/email or password');
+                // Fallback alert if showError doesn't work
+                alert('Wrong username/email or password');
             }
         } catch (error) {
             this.showError('Network error. Please try again.');
