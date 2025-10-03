@@ -138,39 +138,9 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Keep-alive endpoint for UptimeRobot
+// Keep-alive endpoint for external monitoring (UptimeRobot)
 app.get('/ping', (req, res) => {
   res.status(200).send('pong');
-});
-
-// Keep-alive endpoint
-app.get('/ping', (req, res) => {
-  res.status(200).send('pong');
-});
-
-// Self-ping to prevent sleep (only in production)
-if (process.env.NODE_ENV === 'production') {
-  const RENDER_URL = process.env.RENDER_EXTERNAL_URL || 'https://leaderstaskmanager.onrender.com';
-  
-  setInterval(async () => {
-    try {
-      const response = await fetch(`${RENDER_URL}/ping`);
-      console.log(`Keep-alive ping: ${response.status}`);
-    } catch (error) {
-      console.log('Keep-alive ping failed:', error.message);
-    }
-  }, 14 * 60 * 1000); // Ping every 14 minutes
-}
-
-// Manual seed endpoint (remove after first use)
-app.get('/api/seed-admin', async (req, res) => {
-  try {
-    const seedData = require('./scripts/seed');
-    await seedData();
-    res.json({ message: 'Database seeded successfully!' });
-  } catch (error) {
-    res.status(500).json({ error: 'Seeding failed: ' + error.message });
-  }
 });
 
 // Serve frontend
