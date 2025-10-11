@@ -10,13 +10,18 @@ const router = express.Router();
 
 // Get tasks
 router.get('/', asyncHandler(async (req, res) => {
+  console.log('=== TASKS API DEBUG ===');
+  console.log('User:', req.user?.username, 'Role:', req.user?.role);
+  
   const { status, priority, assignedTo, page = 1, limit = 10 } = req.query;
+  console.log('Query params:', { status, priority, assignedTo, page, limit });
   
   let query = {};
   
   // Role-based filtering
   if (req.user.role === 'member') {
     query.assignedTo = req.user._id;
+    console.log('Member query:', query);
   } else if (req.user.role === 'leader') {
     const teamMembers = await User.find({ assignedLeader: req.user._id }).select('_id');
     const memberIds = teamMembers.map(m => m._id);
@@ -24,12 +29,17 @@ router.get('/', asyncHandler(async (req, res) => {
       { createdBy: req.user._id },
       { assignedTo: { $in: memberIds } }
     ];
+    console.log('Leader query:', query, 'Team members:', memberIds.length);
+  } else {
+    console.log('Superadmin - no role restrictions');
   }
   
   // Apply filters
   if (status) query.status = status;
   if (priority) query.priority = priority;
   if (assignedTo) query.assignedTo = assignedTo;
+  
+  console.log('Final MongoDB query:', JSON.stringify(query));
   
   const tasks = await Task.find(query)
     .populate('assignedTo', 'fullName username')
@@ -39,6 +49,9 @@ router.get('/', asyncHandler(async (req, res) => {
     .skip((page - 1) * limit);
     
   const total = await Task.countDocuments(query);
+  
+  console.log('Tasks found:', tasks.length, 'Total in DB:', total);
+  console.log('Sample task:', tasks[0] ? { id: tasks[0]._id, title: tasks[0].title } : 'No tasks');
   
   res.json({
     tasks,

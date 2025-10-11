@@ -366,6 +366,10 @@ class TaskManagerApp {
 
     async loadTasks() {
         try {
+            console.log('=== LOADING TASKS DEBUG ===');
+            console.log('Token:', this.token ? 'EXISTS' : 'MISSING');
+            console.log('User:', this.user);
+            
             const status = document.getElementById('statusFilter').value;
             const priority = document.getElementById('priorityFilter').value;
             
@@ -373,21 +377,31 @@ class TaskManagerApp {
             if (status) url += `status=${status}&`;
             if (priority) url += `priority=${priority}&`;
 
+            console.log('Request URL:', url);
+
             const response = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${this.token}` }
             });
 
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+                const errorText = await response.text();
+                console.error('Server error response:', errorText);
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
 
             const data = await response.json();
+            console.log('Response data:', data);
             
             // Handle case where tasks might be undefined
             const tasks = data.tasks || [];
+            console.log('Tasks to render:', tasks.length);
             this.renderTasks(tasks);
         } catch (error) {
-            this.showError('Failed to load tasks');
+            console.error('LOAD TASKS ERROR:', error);
+            this.showError(`Failed to load tasks: ${error.message}`);
         }
     }
 
