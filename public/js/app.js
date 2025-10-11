@@ -398,6 +398,7 @@ class TaskManagerApp {
             // Handle case where tasks might be undefined
             const tasks = data.tasks || [];
             console.log('Tasks to render:', tasks.length);
+            console.log('Sample task structure:', tasks[0]);
             this.renderTasks(tasks);
         } catch (error) {
             console.error('LOAD TASKS ERROR:', error);
@@ -419,20 +420,25 @@ class TaskManagerApp {
             card.className = `task-card priority-${task.priority}`;
             
             const dueDate = task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date';
+            
+            // Safe access to populated fields
+            const assignedTo = task.assignedTo || {};
+            const createdBy = task.createdBy || {};
+            
             // Superadmin has full access, others check specific permissions
             const canEdit = this.user.role === 'superadmin' || 
-                           task.createdBy._id === this.user._id || 
-                           task.assignedTo._id === this.user._id;
+                           (createdBy._id && createdBy._id === this.user._id) || 
+                           (assignedTo._id && assignedTo._id === this.user._id);
             
             const canDelete = this.user.role === 'superadmin' || 
-                             task.createdBy._id === this.user._id;
+                             (createdBy._id && createdBy._id === this.user._id);
 
             card.innerHTML = `
                 <div class="task-header">
                     <div>
                         <div class="task-title">${task.title}</div>
                         <div class="task-meta">
-                            <span><i class="fas fa-user"></i> ${task.assignedTo.fullName}</span>
+                            <span><i class="fas fa-user"></i> ${assignedTo.fullName || 'Unassigned'}</span>
                             <span><i class="fas fa-calendar"></i> ${dueDate}</span>
                             <span class="priority-badge priority-${task.priority}">${task.priority}</span>
                         </div>
@@ -453,10 +459,10 @@ class TaskManagerApp {
                 ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
                 <div class="task-actions">
                     <div>
-                        <small style="color: #718096;">Created by ${task.createdBy.fullName}</small>
+                        <small style="color: #718096;">Created by ${createdBy.fullName || 'Unknown'}</small>
                     </div>
                     <div>
-                        ${task.assignedTo._id === this.user._id ? `
+                        ${assignedTo._id === this.user._id ? `
                             <select class="status-selector" data-task-id="${task._id}">
                                 <option value="pending" ${task.status === 'pending' ? 'selected' : ''}>Pending</option>
                                 <option value="in-progress" ${task.status === 'in-progress' ? 'selected' : ''}>In Progress</option>
